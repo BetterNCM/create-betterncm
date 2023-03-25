@@ -5,15 +5,20 @@ var prompt = require('prompt');
 const { readFileSync, writeFileSync } = require('fs');
 const { join } = require('path');
 
+const getSlugName = (name) => {
+	if (!name) return null;
+	return name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/ /g, '-');
+};
+
+
 async function init() {
     const cwd = process.cwd();
 
     const { PluginName, Author } = await prompt.get(['PluginName', 'Author',]);
 
     console.log("Cloning BetterNCM boilerplate...");
-    await exec("git clone https://github.com/BetterNCM/boilerplate", { cwd });
-    console.log("Installing dependencies...");
-    await exec("cmd /c cd boilerplate & npm install yarn -g & yarn", { cwd });
+    await exec("git clone https://github.com/BetterNCM/boilerplate --recurse-submodules --remote-submodules", { cwd });
+
 
     // replace boilerplate with plugin name
     const replaceFile = (filename, from, to) => {
@@ -22,11 +27,18 @@ async function init() {
         writeFileSync(join(cwd, filename), str);
     }
 
-    replaceFile("manifest.json","@betterncm/boilerplate", PluginName);
-    replaceFile("manifest.json","MicroBlock", Author);
+    replaceFile("boilerplate/manifest.json", "boilerplate", PluginName);
+    replaceFile("boilerplate/manifest.json", "MicroBlock", Author);
+    replaceFile("boilerplate/dist/manifest.json", "boilerplate", PluginName);
+    replaceFile("boilerplate/dist/manifest.json", "MicroBlock", Author);
+    replaceFile("boilerplate/package.json", "MicroBlock", Author);
+    replaceFile("boilerplate/package.json", "@betterncm/boilerplate", PluginName);
 
     // rename boilerplate
     await exec(`ren boilerplate ${PluginName}`, { cwd });
+
+    console.log("Installing dependencies...");
+    await exec(`cmd /c cd ${PluginName} & npm install yarn -g & yarn`, { cwd });
 
     try {
         await exec("cmd /c cd boilerplate & code .", { cwd });
