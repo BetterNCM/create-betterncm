@@ -34,14 +34,15 @@ async function init() {
     replaceFile("boilerplate/package.json", "MicroBlock", Author);
     replaceFile("boilerplate/package.json", "@betterncm/boilerplate", PluginName);
 
+    const slugname=getSlugName(PluginName)
     // rename boilerplate
-    await exec(`ren boilerplate ${PluginName}`, { cwd });
+    await exec(`ren boilerplate ${slugname}`, { cwd });
 
     console.log("Installing dependencies...");
-    await exec(`cmd /c cd ${PluginName} & npm install yarn -g & yarn`, { cwd });
+    await exec(`cmd /c cd ${slugname} & npm install yarn -g & yarn`, { cwd });
 
     try {
-        await exec("cmd /c cd boilerplate & code .", { cwd });
+        await exec(`cmd /c cd ${slugname} & code .`, { cwd });
     } catch (e) {
         console.log("VSCode not found, skipping...");
     }
